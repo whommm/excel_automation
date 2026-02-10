@@ -32,19 +32,26 @@ def get_base_dir():
 BASE_DIR = get_base_dir()
 
 
-# 日志配置
-def setup_logging():
-    """配置日志"""
-    log_dir = BASE_DIR / "logs"
+# 日志配置 - 延迟初始化
+_logger = None
+
+def get_logger():
+    """获取日志器（延迟初始化）"""
+    global _logger
+    if _logger is not None:
+        return _logger
+
     try:
+        log_dir = BASE_DIR / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file = log_dir / f"bot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         handlers = [
-            logging.FileHandler(log_file, encoding='utf-8'),
+            logging.FileHandler(str(log_file), encoding='utf-8'),
             logging.StreamHandler(sys.stdout)
         ]
-    except Exception:
+    except Exception as e:
         # 如果无法创建日志文件，只输出到控制台
+        print(f"警告: 无法创建日志文件: {e}")
         handlers = [logging.StreamHandler(sys.stdout)]
 
     logging.basicConfig(
@@ -52,9 +59,8 @@ def setup_logging():
         format='%(asctime)s [%(levelname)s] %(message)s',
         handlers=handlers
     )
-    return logging.getLogger(__name__)
-
-logger = setup_logging()
+    _logger = logging.getLogger(__name__)
+    return _logger
 
 
 class AutomationBot:
@@ -77,13 +83,26 @@ class AutomationBot:
     def load_excel(self):
         """读取 Excel 数据"""
         excel_cfg = self.config['excel']
-        file_path = Path(excel_cfg['file_path'])
+        raw_path = excel_cfg.get('file_path', '')
+
+        # 验证路径不为空
+        if not raw_path or not raw_path.strip():
+            raise ValueError("Excel文件路径未配置，请在控制面板中选择Excel文件")
+
+        file_path = Path(raw_path)
 
         # 处理相对路径
         if not file_path.is_absolute():
             file_path = BASE_DIR / file_path
 
-        logger.info(f"读取 Excel: {file_path}")
+        # 验证文件存在
+        if not file_path.exists():
+            raise FileNotFoundError(f"Excel文件不存在: {file_path}")
+
+        if file_path.is_dir():
+            raise ValueError(f"路径是目录而非文件: {file_path}")
+
+        get_logger().info(f"读取 Excel: {file_path}")
 
         df = pd.read_excel(
             file_path,
@@ -104,7 +123,7 @@ class AutomationBot:
         df[code_col] = df[code_col].astype(str).str.strip()
         df[qty_col] = pd.to_numeric(df[qty_col], errors='coerce').fillna(0).astype(int)
 
-        logger.info(f"共读取 {len(df)} 条有效数据")
+        get_logger().info(f"共读取 {len(df)} 条有效数据")
         return df.to_dict('records')
 
     def execute_action(self, step, data):
@@ -112,7 +131,7 @@ class AutomationBot:
         action = step['action']
         name = step.get('name', action)
 
-        logger.info(f"  执行: {name}")
+        get_logger().info(f"  执行: {name}")
 
         if action == 'click':
             return self._action_click(step)
@@ -136,7 +155,7 @@ class AutomationBot:
             return True
 
         else:
-            logger.warning(f"未知动作: {action}")
+            get_logger().warning(f"未知动作: {action}")
             return False
 
     def _action_click(self, step, double=False):
@@ -145,7 +164,7 @@ class AutomationBot:
         y = step.get('y')
 
         if x is None or y is None:
-            logger.error("未设置坐标")
+            get_logger().error("未设置坐标")
             return False
 
         if double:
@@ -199,21 +218,22 @@ class AutomationBot:
         code = data[code_col]
         qty = data[qty_col]
 
-        logger.info(f"[{index}] 处理: {code} -> {qty}")
+        get_logger().info(f"[{index}] 处理: {code} -> {qty}")
 
         for step in self.config['steps']:
             success = self.execute_action(step, data)
             if not success:
-                logger.error(f"步骤失败: {step.get('name')}")
+                get_logger().error(f"步骤失败: {step.get('name')}")
                 self.stats['failed'] += 1
                 return False
 
         self.stats['success'] += 1
-        logger.info(f"[{index}] 完成")
+        get_logger().info(f"[{index}] 完成")
         return True
 
     def run(self, limit=0):
         """主运行方法"""
+        logger = get_logger()
         logger.info("=" * 50)
         logger.info("库存自动化程序启动")
         logger.info("安全提示: 将鼠标移到屏幕左上角可紧急停止")
@@ -270,7 +290,7 @@ def main():
     except KeyboardInterrupt:
         print("\n用户取消")
     except Exception as e:
-        logger.error(f"程序错误: {e}")
+        get_logger().error(f"程序错误: {e}")
         raise
 
 

@@ -153,6 +153,8 @@ class ControlPanel:
                 shutil.copy(path, dest)
             self.excel_path_var.set(f"data/{dest.name}")
             self.preview_excel(dest)
+            # 自动保存配置
+            self.save_excel_config()
 
     def preview_excel(self, path):
         """预览Excel内容"""
@@ -553,13 +555,25 @@ class ControlPanel:
         def run_bot():
             try:
                 import time
-                time.sleep(1)  # 等待窗口最小化
+                import traceback
+                self.log("等待窗口最小化...")
+                time.sleep(1)
+
+                self.log(f"基础目录: {self.base_dir}")
+                self.log(f"配置文件: {self.config_path}")
+
+                self.log("正在导入自动化模块...")
                 from main_bot import AutomationBot
+
+                self.log("正在创建自动化实例...")
                 bot = AutomationBot(str(self.config_path))
+
+                self.log("开始执行自动化...")
                 bot.run(limit=limit)
                 self.log("运行完成!")
             except Exception as e:
                 self.log(f"错误: {e}")
+                self.log(f"详细信息:\n{traceback.format_exc()}")
             finally:
                 # 恢复窗口
                 self.root.after(0, self.root.deiconify)
