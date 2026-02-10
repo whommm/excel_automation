@@ -13,10 +13,22 @@
 ## 环境要求
 
 - Windows 10/11
-- Python 3.8+
 - 屏幕分辨率建议 1920x1080
 
-## 快速部署
+## 快速部署（无需Python环境）
+
+**推荐方式：直接下载 exe 文件运行**
+
+1. 下载仓库中的 `dist/库存自动化工具.exe`
+2. 在同目录下创建 `data` 文件夹，放入 Excel 文件
+3. 在同目录下创建 `assets` 文件夹（可选）
+4. 双击 exe 即可运行
+
+下载地址：https://github.com/whommm/excel_automation/raw/main/dist/库存自动化工具.exe
+
+---
+
+## 开发者部署（需要Python环境）
 
 ### 1. 克隆仓库
 
