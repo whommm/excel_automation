@@ -24,3 +24,7 @@ Thumbs.db
 # Temp files
 *.tmp
 *.bak
+
+# PyInstaller
+build/
+*.spec
