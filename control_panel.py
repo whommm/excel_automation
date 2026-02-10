@@ -7,10 +7,21 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
 from pathlib import Path
+import sys
 import shutil
 import yaml
 import threading
 import pyautogui
+
+
+def get_base_dir():
+    """获取程序基础目录，兼容打包后的exe"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的exe
+        return Path(sys.executable).parent
+    else:
+        # 开发环境
+        return Path(__file__).parent
 
 
 class ControlPanel:
@@ -23,7 +34,7 @@ class ControlPanel:
         self.root.resizable(True, True)
 
         # 路径配置
-        self.base_dir = Path(__file__).parent
+        self.base_dir = get_base_dir()
         self.assets_dir = self.base_dir / "assets"
         self.data_dir = self.base_dir / "data"
         self.config_path = self.base_dir / "config.yaml"

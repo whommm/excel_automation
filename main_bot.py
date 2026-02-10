@@ -20,10 +20,22 @@ import pyperclip
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0.1
 
+
+def get_base_dir():
+    """获取程序基础目录，兼容打包后的exe"""
+    if getattr(sys, 'frozen', False):
+        return Path(sys.executable).parent
+    else:
+        return Path(__file__).parent
+
+
+BASE_DIR = get_base_dir()
+
+
 # 日志配置
 def setup_logging():
     """配置日志"""
-    log_dir = Path("logs")
+    log_dir = BASE_DIR / "logs"
     log_dir.mkdir(exist_ok=True)
 
     log_file = log_dir / f"bot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
@@ -45,8 +57,12 @@ class AutomationBot:
     """自动化机器人核心类"""
 
     def __init__(self, config_path="config.yaml"):
+        # 处理配置文件路径
+        config_path = Path(config_path)
+        if not config_path.is_absolute():
+            config_path = BASE_DIR / config_path
         self.config = self.load_config(config_path)
-        self.assets_dir = Path("assets")
+        self.assets_dir = BASE_DIR / "assets"
         self.stats = {"success": 0, "failed": 0, "skipped": 0}
 
     def load_config(self, path):
@@ -57,7 +73,11 @@ class AutomationBot:
     def load_excel(self):
         """读取 Excel 数据"""
         excel_cfg = self.config['excel']
-        file_path = excel_cfg['file_path']
+        file_path = Path(excel_cfg['file_path'])
+
+        # 处理相对路径
+        if not file_path.is_absolute():
+            file_path = BASE_DIR / file_path
 
         logger.info(f"读取 Excel: {file_path}")
 
