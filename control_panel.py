@@ -490,10 +490,18 @@ class ControlPanel:
         """检查运行条件"""
         all_ok = True
 
-        # 检查Excel
-        excel_path = self.config.get('excel', {}).get('file_path', '')
-        if excel_path and (self.base_dir / excel_path).exists():
-            self.check_labels['excel'].config(text="OK", foreground='green')
+        # 检查Excel - 优先检查界面上的值
+        excel_path = self.excel_path_var.get() or self.config.get('excel', {}).get('file_path', '')
+        if excel_path:
+            # 处理路径
+            full_path = Path(excel_path)
+            if not full_path.is_absolute():
+                full_path = self.base_dir / excel_path
+            if full_path.exists():
+                self.check_labels['excel'].config(text="OK", foreground='green')
+            else:
+                self.check_labels['excel'].config(text=f"文件不存在: {excel_path}", foreground='red')
+                all_ok = False
         else:
             self.check_labels['excel'].config(text="未配置", foreground='red')
             all_ok = False
