@@ -36,17 +36,21 @@ BASE_DIR = get_base_dir()
 def setup_logging():
     """配置日志"""
     log_dir = BASE_DIR / "logs"
-    log_dir.mkdir(exist_ok=True)
-
-    log_file = log_dir / f"bot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / f"bot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        handlers = [
+            logging.FileHandler(log_file, encoding='utf-8'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    except Exception:
+        # 如果无法创建日志文件，只输出到控制台
+        handlers = [logging.StreamHandler(sys.stdout)]
 
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[
-            logging.FileHandler(log_file, encoding='utf-8'),
-            logging.StreamHandler(sys.stdout)
-        ]
+        handlers=handlers
     )
     return logging.getLogger(__name__)
 
