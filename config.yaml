@@ -1,0 +1,39 @@
+excel:
+  file_path: data/inventory.xlsx
+  code_column: 编码
+  quantity_column: 库存数
+  sheet_name: null
+settings:
+  confidence: 0.6
+  default_wait: 0.5
+  timeout: 10
+  failsafe: true
+steps:
+- name: 点击输入框
+  action: click
+  x: 1232
+  y: 443
+  wait_after: 0.3
+- name: 输入编码
+  action: type_text
+  text: '{code}'
+  clear_first: true
+  wait_after: 0.5
+- name: enter
+  action: press_key
+  key: enter
+  wait_after: 0.5
+- name: 点击
+  action: double_click
+  x: 1048
+  y: 375
+  wait_after: 3.0
+- name: 输入编码1
+  action: type_text
+  text: '{code}'
+  clear_first: true
+  wait_after: 0.5
+- name: enter1
+  action: press_key
+  key: enter
+  wait_after: 0.5
