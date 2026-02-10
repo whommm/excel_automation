@@ -81,8 +81,11 @@ class ControlPanel:
     def save_config(self):
         """保存配置"""
         self.config['steps'] = self.steps
-        with open(self.config_path, 'w', encoding='utf-8') as f:
-            yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+        try:
+            with open(str(self.config_path), 'w', encoding='utf-8') as f:
+                yaml.dump(self.config, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+        except Exception as e:
+            messagebox.showerror("保存失败", f"无法保存配置文件:\n{self.config_path}\n错误: {e}")
 
     def setup_ui(self):
         """构建主界面"""
